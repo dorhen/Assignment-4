@@ -1,16 +1,29 @@
 import sqlite3
 import os
-import atexit
+
 
 def close_db(conn):
     conn.commit()
     conn.close()
 
 
+def print_tables(table1, table2, table3):
+    print("courses")
+    print(table1[0])
+    print("classrooms")
+    print(table2[0])
+    print("students")
+    print(table3[0])
+
+
 def loop():
-    counter=0
+    counter = 0
     conn = sqlite3.connect("classes.db")
     c = conn.cursor()
+    c.execute("""
+    SELECT * FROM students;
+    """)
+    students = c.fetchall()
     c.execute("""
     SELECT * FROM courses;
     """)
@@ -19,10 +32,10 @@ def loop():
     SELECT * FROM classrooms;
     """)
     classrooms = c.fetchall()
-    numOfCourses = len(courses)
-    while numOfCourses>0 and os.path.isfile('classes.db'):
+    num_of_courses = len(courses)
+    while num_of_courses > 0 and os.path.isfile('classes.db'):
         for row in classrooms:
-            if row[3]==1:
+            if row[3] == 1:
                 c.execute("""
                 SELECT course_name FROM courses WHERE id=?;
                 """, [row[2]])
@@ -36,37 +49,37 @@ def loop():
                 SET current_course_time_left=0
                 WHERE current_course_id=?
                 """, [row[2]])
-                numOfCourses = numOfCourses-1
-                row = [row[0],row[1],row[2],0]
+                num_of_courses = num_of_courses - 1
+                row = [row[0], row[1], row[2], 0]
             if row[3] == 0:
                 c.execute("""
                 SELECT * FROM courses
                 WHERE class_id=?;
-                """,[row[0]])
-                toStart = c.fetchone()
-                if not toStart is None:
+                """, [row[0]])
+                to_start = c.fetchone()
+                if to_start is not None:
                     conn.execute("""
                     UPDATE students
                     SET count = count - ?
                     WHERE grade=?;
-                    """,[toStart[3],toStart[2]])
+                    """, [to_start[3], to_start[2]])
 
                     conn.execute("""
                     UPDATE classrooms 
                     SET current_course_id = ?, current_course_time_left=?
                     WHERE id=?;
-                    """,[toStart[0],toStart[5] ,row[0]])
-                    print('('+str(counter)+') '+row[1]+': '+toStart[1]+" is scheduled to start")
+                    """, [to_start[0], to_start[5], row[0]])
+                    print('(' + str(counter) + ') ' + row[1] + ': ' + to_start[1] + " is scheduled to start")
             else:
                 c.execute("""
                 SELECT course_name FROM courses WHERE id=?;
-                """,[row[2]])
+                """, [row[2]])
                 print('(' + str(counter) + ') ' + row[1] + ": occupied by " + c.fetchone()[0])
                 conn.execute("""
                 UPDATE courses
                 SET course_length = course_length-?
                 WHERE id=?;
-                """,[1,row[2]])
+                """, [1, row[2]])
                 conn.execute("""
                 UPDATE classrooms
                 SET current_course_time_left = current_course_time_left-?
@@ -77,6 +90,6 @@ def loop():
         SELECT * FROM classrooms;
         """)
         classrooms = c.fetchall()
-        counter = counter+1
+        counter = counter + 1
+        print_tables(courses,classrooms,students)
     close_db(conn)
-
