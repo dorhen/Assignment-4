@@ -4,8 +4,6 @@ import os
 import schedule
 
 if __name__ == '__main__':
-    for i in os.listdir():
-        print(i)
     fileExist =os.path.isfile('classes.db')
     if not fileExist:
         conn = sqlite3.connect("classes.db")
@@ -35,6 +33,7 @@ if __name__ == '__main__':
         args = parser.parse_args()
         file_object = open(args[1][0])
         for line in file_object:
+            line = line.rstrip()
             split=line.split(', ')
             if split[0]=='C':
                 conn.execute("""
