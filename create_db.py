@@ -1,13 +1,13 @@
 import sqlite3
 import optparse
 import os
-import schedule
+
 
 
 def main():
-    file_exist = os.path.isfile('classes.db')
+    file_exist = os.path.isfile('schedule.db')
     if not file_exist:
-        conn = sqlite3.connect("classes.db")
+        conn = sqlite3.connect("schedule.db")
         conn.executescript("""
                 CREATE TABLE courses (
                 id INTEGER PRIMARY KEY,
@@ -35,7 +35,9 @@ def main():
         file_object = open(args[1][0], "r")
         for line in file_object:
             line = line.rstrip()
-            split = line.split(', ')
+            line = line.replace(' ,',',')
+            line = line.replace(', ',',')
+            split = line.split(',')
             if split[0] == 'C':
                 conn.execute("""
                 INSERT INTO courses(id,course_name,student,number_of_students,class_id,course_length) VALUES (?,?,?,?,?,?);
@@ -45,13 +47,15 @@ def main():
                 INSERT INTO students(grade,count) VALUES (?,?);
                 """, split[1:])
             if split[0] == 'R':
-                ans = split[1:] + ["-1", "0"]
+                ans = split[1:] + ["0", "0"]
                 conn.execute("""
                     INSERT INTO classrooms(id,location,current_course_id,current_course_time_left) VALUES (?,?,?,?);
                     """, ans)
-        conn.commit()
-        schedule.loop()
+        close_db(conn)
 
+def close_db(conn):
+    conn.commit()
+    conn.close()
 
 if __name__ == '__main__':
     main()
