@@ -51,7 +51,32 @@ def main():
                 conn.execute("""
                     INSERT INTO classrooms(id,location,current_course_id,current_course_time_left) VALUES (?,?,?,?);
                     """, ans)
+        c.execute("""
+        SELECT * FROM students;
+        """)
+        students = c.fetchall()
+        c.execute("""
+        SELECT * FROM courses;
+        """)
+        courses = c.fetchall()
+        c.execute("""
+        SELECT * FROM classrooms;
+        """)
+        classrooms = c.fetchall()
+        print_tables(courses, classrooms, students)
         close_db(conn)
+
+def print_tables(table1, table2, table3):
+    print("courses")
+    for line in table1:
+        print(line)
+    print("classrooms")
+    for line in table2:
+        print(line)
+    print("students")
+    for line in table3:
+        print(line)
+
 
 def close_db(conn):
     conn.commit()
